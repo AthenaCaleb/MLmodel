@@ -1,0 +1,11 @@
+scikit-learn
+skops
+numpy
+pandas
+scikit-learn
+matplotlib
+skops
+gradio
+huggingface_hub
+cml # iterative CML Python package for comments/reports
+joblib
