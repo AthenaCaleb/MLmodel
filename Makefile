@@ -6,25 +6,18 @@ install:
 	# Upgrade pip, setuptools, and wheel
 	pip install --upgrade pip setuptools wheel
 
-	# Install latest CML (for GitHub Actions comments)
-	pip install --upgrade "cml>=0.9.0"
-
 	# Install Python dependencies
 	pip install -r app/requirements.txt
 
 train:
 	# Train the model
 	python train.py
-
 eval:
-	# Generate report with metrics and plot
 	echo "## Model Metrics" > result/report.md
 	cat result/metrics.txt >> result/report.md
-	echo '\n## Confusion Matrix Plot' >> result/report.md
-	echo '![Confusion Matrix](./result/model_results.png)' >> result/report.md
+	echo '\n## Confusion Matrix Plot' >> result/report.md  
+	echo '![Confusion Matrix](./result/model_results.png)' >>_)
 
-	# Post report as GitHub PR comment (optional)
-	cml comment create result/report.md || echo "CML comment skipped."
 
 update-branch:
 	# Update branch with new model/results
