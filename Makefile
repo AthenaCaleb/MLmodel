@@ -16,7 +16,9 @@ eval:
 	echo "## Model Metrics" > result/report.md
 	cat result/metrics.txt >> result/report.md
 	echo '\n## Confusion Matrix Plot' >> result/report.md  
-	echo '![Confusion Matrix](./result/model_results.png)' >>_)
+	echo '![Confusion Matrix](./result/model_results.png)' >> result/report.md
+	
+
 
 
 update-branch:
