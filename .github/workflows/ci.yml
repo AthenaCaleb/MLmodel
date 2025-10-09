@@ -1,8 +1,7 @@
 # 1. Add the name of the workflow.
-name: CI for Training and Evaluation
+name: CI for Training, Evaluation and Deployment
 
-# 2. Set the trigger so that the workflow runs on a push or pull request
-#    to the main branch or a manual run.
+# 2. Trigger on push, PR, or manual run.
 on:
   push:
     branches:
@@ -10,16 +9,14 @@ on:
   pull_request:
     branches:
       - main
-  # Enables manual run from the GitHub Actions tab
   workflow_dispatch:
 
 jobs:
-  build-and-test:
-    # 3. Build an environment for the job. We will load the latest Linux server.
+  build-train-eval-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # 4. Activate the GitHub Actions that we are going to use in the workflow.
+      # 4. Checkout the repository
       - name: ⬇️ Checkout Repository
         uses: actions/checkout@v4
 
@@ -30,18 +27,30 @@ jobs:
           python-version: '3.x'
           cache: 'pip'
 
-      # 5. Start adding different runs using various make commands.
-      # Assuming you have a Makefile in your repo with these targets:
-      
+      # 5. Install dependencies
       - name: 💾 Install Dependencies (using make)
         run: make install
 
+      # 6. Train the model
       - name: 🏃 Train Model (using make)
         run: make train
 
+      # 7. Evaluate the model
       - name: 📊 Evaluate Model (using make)
         run: make eval
-        
-      # Optional: Add a step to show the results in the log
+
+      # Optional: Display metrics in the log
       - name: 📝 Display Metrics
-        run: cat Results/metrics.txt || echo "Metrics file not found."
+        run: cat result/metrics.txt || echo "Metrics file not found."
+
+      # 8. Hugging Face Deployment
+      - name: 🚀 Deploy to Hugging Face Space
+        env:
+          HF: ${{ secrets.HF_TOKEN }}
+        run: |
+          echo "Logging in to Hugging Face..."
+          pip install -U "huggingface_hub[cli]"
+          huggingface-cli login --token "$HF" --add-to-git-credential
+
+          echo "Pushing updated app/model/results to Hugging Face Space..."
+          make push-hub
