@@ -1,9 +1,5 @@
-# =============================
-# Workflow: CI for Training, Evaluation and Deployment
-# =============================
 name: CI for Training, Evaluation and Deployment
 
-# Trigger on push, PR, or manual run
 on:
   push:
     branches:
@@ -22,39 +18,34 @@ jobs:
       - name: ⬇️ Checkout Repository
         uses: actions/checkout@v4
 
-      # 2️⃣ Install build tools (make)
+      # 2️⃣ Install build tools
       - name: 🔧 Install build tools
-        run: sudo apt-get update && sudo apt-get install -y make build-essential
+        run: sudo apt-get update && sudo apt-get install -y make
 
-      # 3️⃣ Setup Python 3.11
-      - name: 🛠️ Setup Python 3.11
+      # 3️⃣ Setup Python 3.10
+      - name: 🛠️ Setup Python 3.10
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.10'
           cache: 'pip'
 
-      # 4️⃣ Upgrade pip, setuptools, wheel
-      - name: ⚡ Upgrade pip, setuptools, wheel
-        run: |
-          python -m pip install --upgrade pip setuptools wheel
-
-      # 5️⃣ Install dependencies using Makefile
-      - name: 💾 Install Dependencies (Makefile)
+      # 4️⃣ Install dependencies using Makefile
+      - name: 💾 Install Dependencies
         run: make install
 
-      # 6️⃣ Train the model
+      # 5️⃣ Train the model
       - name: 🏃 Train Model
         run: make train
 
-      # 7️⃣ Evaluate the model
+      # 6️⃣ Evaluate the model
       - name: 📊 Evaluate Model
         run: make eval
 
-      # 8️⃣ Display metrics in the log (optional)
+      # 7️⃣ Display metrics in the log
       - name: 📝 Display Metrics
         run: cat result/metrics.txt || echo "Metrics file not found."
 
-      # 9️⃣ Hugging Face Deployment
+      # 8️⃣ Deploy to Hugging Face Space
       - name: 🚀 Deploy to Hugging Face Space
         env:
           HF: ${{ secrets.HF_TOKEN }}
@@ -63,5 +54,5 @@ jobs:
           pip install -U "huggingface_hub[cli]"
           huggingface-cli login --token "$HF" --add-to-git-credential
 
-          echo "Pushing updated app/model/results to Hugging Face Space..."
+          echo "Pushing app/model/results to Hugging Face Space..."
           make push-hub

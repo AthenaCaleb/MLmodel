@@ -1,53 +1,50 @@
+# ----------------------
+# Makefile for MLmodel CI
+# ----------------------
+
 install:
 	# Upgrade pip, setuptools, and wheel
 	pip install --upgrade pip setuptools wheel
-	# Install required Python packages
-	pip install -r app/requirements.txt
-	# Install CML for evaluation comments
-	pip install cml
 
-# Train the model
+	# Install latest CML (for GitHub Actions comments)
+	pip install --upgrade "cml>=0.9.0"
+
+	# Install Python dependencies
+	pip install -r app/requirements.txt
+
 train:
+	# Train the model
 	python train.py
 
-#  the model
 eval:
-	# Ensure the result directory exists
-	mkdir -p result
-	# Create metrics report
+	# Generate report with metrics and plot
 	echo "## Model Metrics" > result/report.md
 	cat result/metrics.txt >> result/report.md
-	echo '\n## Confusion Matrix Plot' >> result/report.md  
+	echo '\n## Confusion Matrix Plot' >> result/report.md
 	echo '![Confusion Matrix](./result/model_results.png)' >> result/report.md
-	# Create GitHub PR/commit comment using CML
-	cml comment create result/report.md
 
-#  branch with model and results
+	# Post report as GitHub PR comment (optional)
+	cml comment create result/report.md || echo "CML comment skipped."
+
 update-branch:
-	git config --global user.name scholargj17
-	git config --global user.email scholargj17@gmail.com
+	# Update branch with new model/results
+	git config --global user.name "AthenaCaleb"
+	git config --global user.email "athena.caleb17@gmail.com"
 	git add model result
 	git commit -m "Update model and results"
 	git push --force origin HEAD:update
 
-# Hugging Face login
 hf-login:
-	# Pull and switch branch if it exists
+	# Login to Hugging Face using secret token
 	git pull origin update || true
 	git switch update || true
-	# Install HF CLI
 	pip install -U "huggingface_hub[cli]"
-	# Login using token stored in environment variable HF
 	huggingface-cli login --token $(HF) --add-to-git-credential
 
-# Push to Hugging Face Space
 push-hub:
-	# Upload app files
-	huggingface-cli upload DRGJ2025/DRUG_CLASSIFY ./app --repo-type=space --commit-message="Sync App files"
-	# Upload model files
-	huggingface-cli upload DRGJ2025/DRUG_CLASSIFY ./model --repo-type=space --commit-message="Sync Model"
-	# Upload result files
-	huggingface-cli upload DRGJ2025/DRUG_CLASSIFY ./result --repo-type=space --commit-message="Sync Results"
+	# Push app, model, results to Hugging Face Space
+	huggingface-cli upload athenacaleb/MLmodel ./app --repo-type=space --commit-message="Sync App files"
+	huggingface-cli upload athenacaleb/MLmodel ./model --repo-type=space --commit-message="Sync Model"
+	huggingface-cli upload athenacaleb/MLmodel ./result --repo-type=space --commit-message="Sync Results"
 
-# Deploy: login + push to HF
 deploy: hf-login push-hub
